@@ -2,7 +2,7 @@
  * NotificationSettingsScreen - Push, email, and reminder settings
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -29,7 +29,11 @@ export function NotificationSettingsScreen() {
   );
   const [saving, setSaving] = useState(false);
 
-  if (!user) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!user) navigate('/login');
+  }, [user, navigate]);
+
+  if (!user) return null;
 
   const toggle = (key: keyof Omit<NotificationSettings, 'moodReminderTime' | 'journalReminderTime'>) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));

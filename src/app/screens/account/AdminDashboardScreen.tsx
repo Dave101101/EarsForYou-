@@ -23,6 +23,7 @@ import {
 } from '../../components/ui/alert-dialog';
 import { useApp } from '../../context/AppContext';
 import { AccountService, AdminUser } from '../../services/AccountService';
+import { AdminAuthService } from '../../services/AdminAuthService';
 import { toast } from 'sonner';
 import { cn } from '../../components/ui/utils';
 
@@ -62,7 +63,11 @@ export function AdminDashboardScreen() {
     setUsersLoading(false);
   };
 
-  if (!user) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!user) navigate('/login');
+  }, [user, navigate]);
+
+  if (!user) return null;
 
   const handleSuspend = async (u: AdminUser) => {
     setActionLoading(u.id + '-suspend');
@@ -151,6 +156,12 @@ export function AdminDashboardScreen() {
             </div>
             <p className="text-sm text-muted-foreground">User management & analytics</p>
           </div>
+          <button
+            onClick={() => { AdminAuthService.logout(); navigate('/account'); }}
+            className="text-xs px-3 py-1.5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all"
+          >
+            Admin Logout
+          </button>
         </div>
 
         {/* Tab Bar */}

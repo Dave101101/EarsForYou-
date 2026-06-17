@@ -26,7 +26,7 @@ import { AccountService, Session, ActivityLog } from '../../services/AccountServ
 import { toast } from 'sonner';
 import { cn } from '../../components/ui/utils';
 
-type ActiveSection = 'menu' | 'password' | 'otp' | 'sessions' | 'activity';
+type ActiveSection = 'menu' | 'password' | 'otp' | 'sessions' | 'activity' | 'change-email';
 
 export function SecurityScreen() {
   const navigate = useNavigate();
@@ -46,6 +46,14 @@ export function SecurityScreen() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
+
+  // Change email state
+  const [emailStep, setEmailStep] = useState<'form' | 'otp'>('form');
+  const [currentEmailPwd, setCurrentEmailPwd] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [emailOtp, setEmailOtp] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const CHANGE_EMAIL_OTP_KEY = 'earsforyou_change_email_otp';
 
   // Sessions
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -74,7 +82,11 @@ export function SecurityScreen() {
     return () => clearTimeout(t);
   }, [resendCountdown]);
 
-  if (!user) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!user) navigate('/login');
+  }, [user, navigate]);
+
+  if (!user) return null;
 
   // ── Password Change ──
   const handleChangePassword = async () => {
@@ -163,8 +175,9 @@ export function SecurityScreen() {
 
   const menuItems = [
     { id: 'password', icon: Lock, label: 'Change Password', desc: 'Update your login password', color: 'text-primary', bg: 'bg-primary/10' },
-    { id: 'otp', icon: Mail, label: 'Email Verification', desc: 'Verify or re-verify your email', color: 'text-teal-400', bg: 'bg-teal-400/10' },
-    { id: 'sessions', icon: Smartphone, label: 'Active Sessions', desc: 'Manage devices & sessions', color: 'text-accent', bg: 'bg-accent/10' },
+    { id: 'change-email', icon: Mail, label: 'Change Email', desc: 'Update your email address', color: 'text-teal-400', bg: 'bg-teal-400/10' },
+    { id: 'otp', icon: Key, label: 'Email Verification', desc: 'Verify or re-verify your email', color: 'text-accent', bg: 'bg-accent/10' },
+    { id: 'sessions', icon: Smartphone, label: 'Active Sessions', desc: 'Manage devices & sessions', color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
     { id: 'activity', icon: History, label: 'Security Activity', desc: 'View login & account history', color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
   ] as const;
 
@@ -362,6 +375,85 @@ export function SecurityScreen() {
       );
     }
 
+    if (activeSection === 'change-email') {
+      const handleInitiateEmailChange = async () => {
+        if (!currentEmailPwd) { toast.error('Enter your current password'); return; }
+        if (!/\S+@\S+\.\S+/.test(newEmail)) { toast.error('Enter a valid email address'); return; }
+        setEmailLoading(true);
+        await new Promise(r => setTimeout(r, 800));
+        // In production: POST /change-email/initiate  { currentPassword, newEmail }
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        sessionStorage.setItem(CHANGE_EMAIL_OTP_KEY, otp);
+        console.info(`[DEV] Change email OTP: ${otp}`);
+        toast.success(`Verification code sent to ${newEmail}`);
+        setEmailLoading(false);
+        setEmailStep('otp');
+      };
+
+      const handleConfirmEmailChange = async () => {
+        if (emailOtp.length !== 6) { toast.error('Enter 6-digit code'); return; }
+        setEmailLoading(true);
+        await new Promise(r => setTimeout(r, 600));
+        // In production: POST /change-email/verify  { otp }
+        const stored = sessionStorage.getItem(CHANGE_EMAIL_OTP_KEY);
+        if (emailOtp !== stored) { toast.error('Invalid code'); setEmailLoading(false); return; }
+        sessionStorage.removeItem(CHANGE_EMAIL_OTP_KEY);
+        toast.success('Email updated successfully');
+        setEmailLoading(false);
+        setEmailStep('form');
+        setCurrentEmailPwd(''); setNewEmail(''); setEmailOtp('');
+        setActiveSection('menu');
+      };
+
+      return (
+        <motion.div key="change-email" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+          {emailStep === 'form' ? (
+            <GlassmorphicCard>
+              <h3 className="font-medium mb-5 flex items-center gap-2">
+                <Mail className="w-4 h-4 text-teal-400" /> Change Email Address
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Current Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input type="password" value={currentEmailPwd} onChange={e => setCurrentEmailPwd(e.target.value)} placeholder="••••••••" className="pl-10 bg-background/50 border-white/10" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">New Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="new@example.com" className="pl-10 bg-background/50 border-white/10" />
+                  </div>
+                </div>
+              </div>
+              <Button onClick={handleInitiateEmailChange} disabled={emailLoading} className="w-full mt-5 bg-primary hover:bg-primary/90 text-white rounded-2xl h-12 shadow-lg shadow-primary/30">
+                {emailLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending code…</> : 'Send Verification Code'}
+              </Button>
+            </GlassmorphicCard>
+          ) : (
+            <GlassmorphicCard>
+              <h3 className="font-medium mb-5 flex items-center gap-2">
+                <Mail className="w-4 h-4 text-teal-400" /> Verify New Email
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">Enter the code sent to <span className="text-foreground font-medium">{newEmail}</span></p>
+              <Input
+                type="text" inputMode="numeric" maxLength={6}
+                value={emailOtp} onChange={e => setEmailOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="000000"
+                className="text-center tracking-[0.5em] text-xl font-bold bg-background/50 border-white/10 mb-4"
+              />
+              <Button onClick={handleConfirmEmailChange} disabled={emailLoading || emailOtp.length !== 6} className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-12 shadow-lg shadow-primary/30">
+                {emailLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying…</> : 'Confirm Email Change'}
+              </Button>
+              <button onClick={() => setEmailStep('form')} className="w-full mt-3 text-sm text-muted-foreground hover:text-foreground text-center">← Back</button>
+            </GlassmorphicCard>
+          )}
+        </motion.div>
+      );
+    }
+
     if (activeSection === 'activity') {
       const statusIcon = (s: ActivityLog['status']) =>
         s === 'success' ? <CheckCircle className="w-4 h-4 text-green-400" />
@@ -416,6 +508,7 @@ export function SecurityScreen() {
             <h1 className="text-2xl font-bold">
               {activeSection === 'menu' ? 'Security Settings' :
                activeSection === 'password' ? 'Change Password' :
+               activeSection === 'change-email' ? 'Change Email' :
                activeSection === 'otp' ? 'Email Verification' :
                activeSection === 'sessions' ? 'Active Sessions' : 'Security Activity'}
             </h1>

@@ -29,7 +29,11 @@ export function PrivacyScreen() {
   const [settings, setSettings] = useState<PrivacySettings>(AccountService.getPrivacySettings());
   const [saving, setSaving] = useState(false);
 
-  if (!user) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!user) navigate('/login');
+  }, [user, navigate]);
+
+  if (!user) return null;
 
   const toggle = (key: keyof Omit<PrivacySettings, 'profileVisibility'>) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));

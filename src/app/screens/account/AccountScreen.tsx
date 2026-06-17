@@ -98,7 +98,7 @@ const menuGroups: { title: string; items: MenuItem[] }[] = [
 
 export function AccountScreen() {
   const navigate = useNavigate();
-  const { user, setUser } = useApp();
+  const { user, setUser, isAdmin, t } = useApp();
 
   const handleLogout = async () => {
     await AuthService.logout();
@@ -207,7 +207,7 @@ export function AccountScreen() {
             </motion.div>
           ))}
 
-          {/* Admin Dashboard */}
+          {/* Admin Dashboard — visible to all, but route is protected */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -218,7 +218,7 @@ export function AccountScreen() {
             </p>
             <GlassmorphicCard className="p-0 overflow-hidden">
               <button
-                onClick={() => navigate('/admin')}
+                onClick={() => navigate(isAdmin ? '/admin' : '/admin/login')}
                 className="w-full flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all"
               >
                 <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center shrink-0">
@@ -226,7 +226,7 @@ export function AccountScreen() {
                 </div>
                 <div className="flex-1 text-left">
                   <p className="font-medium text-sm">Admin Dashboard</p>
-                  <p className="text-xs text-muted-foreground">User management & analytics</p>
+                  <p className="text-xs text-muted-foreground">{isAdmin ? 'You are logged in as admin' : 'Authorized access only'}</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </button>
