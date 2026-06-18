@@ -1,0 +1,58 @@
+:root{
+  /* Prefer global theme tokens if available */
+  --color-bg-base: var(--color-bg-base, var(--background, #F2F8F4));
+  --color-bg-surface: var(--color-bg-surface, var(--card, #FFFFFF));
+  --color-green-primary: var(--color-green-primary, var(--primary, #3D8B6E));
+  --color-green-soft: var(--color-green-soft, var(--accent, #E6F4ED));
+  --color-green-mid: var(--color-green-mid, #B2D9C8);
+  --color-green-deep: var(--color-green-deep, #2A6652);
+  --color-text-primary: var(--color-text-primary, var(--foreground, #1A1A2E));
+  --color-text-secondary: var(--color-text-secondary, #6B7280);
+  --color-text-muted: var(--color-text-muted, #9CA3AF);
+  --color-border-subtle: var(--color-border-subtle, var(--border, #D4EAE0));
+  --color-shadow: var(--color-shadow, rgba(42, 102, 82, 0.07));
+}
+
+.ef-chat-screen { background: var(--color-bg-base); min-height:100vh; display:flex; flex-direction:column; }
+.ef-chat-card { max-width:880px; margin: 16px auto; width:100%; display:flex; flex-direction:column; border-radius:var(--radius); overflow:hidden; background:var(--card); box-shadow: 0 6px 20px var(--color-shadow); }
+.ef-chat-header { padding:16px 18px; background:var(--color-bg-surface); display:flex; align-items:center; gap:12px; border-radius:var(--radius) var(--radius) 0 0; }
+.ef-brand-chip { width:48px; height:48px; border-radius:12px; background: linear-gradient(180deg,var(--color-green-mid),var(--color-green-deep)); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; }
+.ef-header-title { display:flex; flex-direction:column; }
+.ef-header-title .name { font-size:17px; font-weight:600; color:var(--color-text-primary); }
+.ef-header-title .subtitle { font-size:12px; color:var(--color-text-muted); }
+.ef-header-row { display:flex; align-items:center; gap:12px; }
+.ef-header-actions { margin-left: auto; }
+.ef-back-button { background:transparent; border:none; color:var(--color-green-deep); }
+
+.ef-message-list { flex:1; padding:18px; display:flex; flex-direction:column; gap:12px; overflow:auto; }
+
+.ef-bubble-row { display:flex; gap:8px; align-items:flex-end; }
+.ef-bubble-row.user { flex-direction:row-reverse; }
+.ef-bubble-row.ai { flex-direction:row; }
+.ef-bubble .ef-meta { margin-top:8px; }
+.ef-inputbar { position:sticky; bottom:0; background: rgba(242,248,244,0.90); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding:14px; border-top:1px solid var(--color-border-subtle); display:flex; gap:12px; align-items:center; }
+.ef-input { flex:1; display:flex; gap:8px; align-items:center; }
+.ef-attach, .ef-emoji { opacity:0.35; }
+.ef-input input { flex:1; padding:12px 16px; border-radius:12px; border:1px solid var(--color-border-subtle); background:var(--color-bg-elevated); font-size:15px; outline:none; }
+.ef-send { width:48px; height:48px; border-radius:12px; background:linear-gradient(180deg,var(--color-green-primary),var(--color-green-deep)); display:flex; align-items:center; justify-content:center; color:white; box-shadow: 0 8px 24px rgba(42,102,82,0.12); border:none; }
+
+.ef-bubble { padding:14px 16px; border-radius:12px; max-width:78%; font-size:15px; line-height:1.6; }
+.ef-bubble.ai { align-self:flex-start; background: linear-gradient(135deg, var(--color-green-soft), var(--color-bg-surface)); border-left:3px solid var(--color-green-primary); box-shadow: 0 6px 18px var(--color-shadow); }
+.ef-bubble.user { align-self:flex-end; background:var(--color-bg-elevated); border:1.5px solid var(--color-green-mid); box-shadow: 0 6px 12px rgba(0,0,0,0.04); }
+.ef-meta { display:flex; gap:8px; align-items:center; font-size:11px; color:var(--color-text-muted); }
+
+.typing-indicator { display:inline-flex; gap:6px; align-items:center; padding:6px 8px; border-radius:10px; background:var(--color-green-soft); }
+.typing-indicator span { width:7px; height:7px; background:var(--color-green-deep); border-radius:50%; display:inline-block; animation: typingPulse 900ms infinite; }
+.typing-indicator span:nth-child(2){ animation-delay:120ms; }
+.typing-indicator span:nth-child(3){ animation-delay:240ms; }
+
+/* Ensure typing indicator remains visible in dark mode */
+.dark .typing-indicator { background: rgba(255,255,255,0.04); }
+.dark .typing-indicator span { background: var(--color-green-deep); }
+
+@keyframes typingPulse { 0%,60%,100%{ transform: translateY(0); opacity:0.35;} 30%{ transform: translateY(-6px); opacity:1; } }
+
+/* responsive */
+@media (max-width:420px){ .ef-chat-card{ margin:8px; } .ef-chat-header{ padding:10px; } }
+
+.ef-typing-wrapper { padding: 0 12px 12px; }
