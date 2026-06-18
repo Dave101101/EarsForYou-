@@ -1,24 +1,48 @@
 import React from 'react';
+import { Trash2 } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
 interface Props {
   title?: string;
   subtitle?: string;
-  onBack?: () => void;
+  onClear?: () => void;
+  hasMessages?: boolean;
+  isBusy?: boolean;
 }
 
-export default function ChatHeader({ title = 'EarsForYou', subtitle = 'I\'m here to listen.', onBack }: Props) {
+export default function ChatHeader({
+  title,
+  subtitle,
+  onClear,
+  hasMessages = false,
+  isBusy = false,
+}: Props) {
+  const { t } = useApp();
+
   return (
-    <div className="ef-chat-header">
+    <header className="ef-chat-header">
       <div className="ef-header-row">
-        <div className="ef-brand-chip">EF</div>
+        <div className="ef-brand-chip" aria-hidden>EF</div>
         <div className="ef-header-title">
-          <div className="name">{title}</div>
-          <div className="subtitle">{subtitle}</div>
+          <div className="name">{title ?? t('chat_title')}</div>
+          <div className="subtitle">{subtitle ?? t('chat_subtitle')}</div>
         </div>
+        <div className="ef-status-dot" aria-label={t('chat_online')} title={t('chat_online')} />
       </div>
       <div className="ef-header-actions">
-        {onBack && <button onClick={onBack} aria-label="Back" className="ef-back-button">Back</button>}
+        {onClear && (
+          <button
+            type="button"
+            className="ef-header-btn"
+            onClick={onClear}
+            disabled={!hasMessages || isBusy}
+            aria-label={t('chat_clear')}
+            title={t('chat_clear')}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
-    </div>
+    </header>
   );
 }

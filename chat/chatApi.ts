@@ -1,21 +1,32 @@
-import { Message } from './types';
+import type { SendMessagePayload, StreamMeta } from './types';
 
-export async function sendMessage(payload: { content: string; sessionId: string }) {
+export async function sendMessage(payload: SendMessagePayload) {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: [{ role: 'user', text: payload.content }] }),
+    body: JSON.stringify({
+      messages: (payload.history ?? [{ role: 'user' as const, content: payload.content }]).map(
+        (m) => ({ role: m.role, text: m.content })
+      ),
+    }),
   });
   if (!res.ok) throw new Error('Chat API error');
   return res.json();
 }
 
-// receiveStream reads NDJSON tokens from /api/chat/stream and forwards them
-export async function receiveStream(payload: { content: string; sessionId: string }, onToken: (token: string) => void, onDone?: (meta?: { text?: string; language?: string }) => void) {
+export async function receiveStream(
+  payload: SendMessagePayload,
+  onToken: (token: string) => void,
+  onDone?: (meta?: StreamMeta) => void
+) {
+  const history = payload.history?.length
+    ? payload.history.map((m) => ({ role: m.role, text: m.content }))
+    : [{ role: 'user', text: payload.content }];
+
   const res = await fetch('/api/chat/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: [{ role: 'user', text: payload.content }] }),
+    body: JSON.stringify({ messages: history, sessionId: payload.sessionId }),
   });
 
   if (!res.ok) throw new Error('Stream not available');
@@ -37,8 +48,8 @@ export async function receiveStream(payload: { content: string; sessionId: strin
         const obj = JSON.parse(line);
         if (obj.type === 'token') onToken(obj.token);
         if (obj.type === 'done' && onDone) onDone({ text: obj.text, language: obj.language });
-      } catch (e) {
-        // ignore parse errors
+      } catch {
+        // ignore malformed lines
       }
     }
   }

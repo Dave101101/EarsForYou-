@@ -1,24 +1,39 @@
-// Theme tokens for the chat UI (light mode)
-export const theme = {
+/** Chat-specific design tokens — light mode uses the premium green palette */
+export const chatTheme = {
   colors: {
-    bgBase: '#F8FAF7',
-    bgSurface: '#FFFFFF',
-    greenPrimary: '#3D8B6E',
-    greenSoft: '#EAF4EF',
-    greenMid: '#B2D9C8',
-    greenDeep: '#2A6652',
-    textPrimary: '#1A1A2E',
-    textSecondary: '#6B7280',
-    textMuted: '#9CA3AF',
-    borderSubtle: '#E5EDE9',
-    shadow: 'rgba(61, 139, 110, 0.08)',
+    primary: '#2E7D32',
+    primaryHover: '#1B5E20',
+    accentSoft: '#A5D6A7',
+    bgTint: '#F0FDF4',
+    success: '#22C55E',
+    textOnGreen: '#FFFFFF',
+    textPrimary: '#0F2E23',
+    textSecondary: '#356A53',
+    textMuted: '#6F9984',
+    surface: '#FFFFFF',
+    border: '#D4EAE0',
+    shadow: 'rgba(46, 125, 50, 0.08)',
+    error: '#EF4444',
+    errorBg: '#FEF2F2',
   },
   radii: {
-    card: '16px',
-    bubble: '12px',
-    input: '12px',
+    card: '1.5rem',
+    bubble: '1rem',
+    input: '0.875rem',
+    button: '0.875rem',
   },
   spacing: {
-    mobileWidth: '390px',
+    header: '1rem',
+    messageGap: '0.75rem',
+    inputPadding: '0.875rem',
   },
-};
+  animation: {
+    bubbleDuration: '0.35s',
+    fadeDuration: '0.25s',
+  },
+  input: {
+    maxLength: 2000,
+  },
+} as const;
+
+export type ChatTheme = typeof chatTheme;
